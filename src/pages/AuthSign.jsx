@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet } from 'lucide-react'; // Keep original icon import
+import { Wallet } from 'lucide-react';
 import GeometricWeb from '../components/GeometricWeb.jsx';
 
 const AuthSign = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
 
-  // Wallet connection logic (keep original implementation)
   useEffect(() => {
     const storedAddress = localStorage.getItem('walletAddress');
     if (storedAddress) setWalletAddress(storedAddress);
@@ -37,14 +36,12 @@ const AuthSign = () => {
       alert('MetaMask is not installed. Please install MetaMask to use this feature.');
       return;
     }
-
     setIsConnecting(true);
     try {
       await window.ethereum.request({
         method: 'wallet_requestPermissions',
         params: [{ eth_accounts: {} }]
       });
-
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       setWalletAddress(accounts[0]);
       localStorage.setItem('walletAddress', accounts[0]);
@@ -61,7 +58,6 @@ const AuthSign = () => {
     localStorage.removeItem('walletAddress');
   };
 
-  // Cursor effect (compatible with other components)
   useEffect(() => {
     const cursor = document.createElement('div');
     cursor.id = "auth-cursor";
@@ -73,7 +69,6 @@ const AuthSign = () => {
     };
 
     document.addEventListener('mousemove', moveCursor);
-
     return () => {
       document.removeEventListener('mousemove', moveCursor);
       document.body.removeChild(cursor);
@@ -84,7 +79,6 @@ const AuthSign = () => {
     <div className="min-h-screen w-full bg-black">
       <div className="fixed inset-0 bg-black" />
       <GeometricWeb />
-
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md bg-black/90 border border-emerald-500/30 rounded-xl p-8 backdrop-blur-lg">
           <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300">
@@ -95,7 +89,6 @@ const AuthSign = () => {
               Decentralized Lending Platform
             </p>
           </div>
-
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-emerald-200 animate-fade-in">
               Platform Access
@@ -104,7 +97,6 @@ const AuthSign = () => {
               {walletAddress ? 'Wallet Connected' : 'Connect your wallet to continue'}
             </p>
           </div>
-
           {!walletAddress ? (
             <button
               onClick={connectWallet}
@@ -122,7 +114,6 @@ const AuthSign = () => {
               >
                 Disconnect Wallet
               </button>
-
               <div className="text-emerald-400 text-sm text-center mt-4 truncate">
                 Connected Address: {walletAddress}
               </div>
@@ -130,22 +121,19 @@ const AuthSign = () => {
           )}
         </div>
       </div>
-
-      <style jsx global>{`
+      <style>{`
         @keyframes pulse-slow {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.8; }
         }
-
         .animate-pulse-slow {
           animation: pulse-slow 3s ease-in-out infinite;
         }
-
         #auth-cursor {
           position: fixed;
           width: 20px;
           height: 20px;
-          background:rgb(40, 34, 197, 0.8);
+          background: rgba(40, 34, 197, 0.8);
           border-radius: 50%;
           pointer-events: none;
           z-index: 10000;
@@ -153,11 +141,9 @@ const AuthSign = () => {
           transition: transform 0.1s ease-out;
           mix-blend-mode: exclusion;
         }
-
         button:hover ~ #auth-cursor {
           transform: scale(1.5);
         }
-
         body, a, button {
           cursor: none;
         }

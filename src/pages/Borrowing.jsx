@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './card';
+import { ethers } from 'ethers';
+import { useWallet } from '../wallet.jsx';
+
+// Use Vite’s environment variable syntax
+const contractAddress = import.meta.env.VITE_MICRO_LOAN_ADDRESS || "0xc7e393878c1f05040b54afa172d00d73b0db412e";
+
+// Minimal ABI for the functions we need (requestLoan and events)
+const contractAbi = [
+  "function requestLoan(tuple(uint256 amount, uint256 interest, uint256 duration, uint256 collateralAmount, address collateralToken)) external",
+  "event LoanRequested(uint256 indexed loanId, address indexed borrower, uint256 amount, uint256 collateralAmount)"
+];
 
 const Borrowing = () => {
-  const [isConnected, setIsConnected] = useState(false);
+  const { signer, account } = useWallet();
+  const [isConnected, setIsConnected] = useState(!!account);
   const [walletLoading, setWalletLoading] = useState(false);
-  const [account, setAccount] = useState('');
   
   const [loanAmount, setLoanAmount] = useState('');
   const [collateralAmount, setCollateralAmount] = useState('');
@@ -28,18 +39,12 @@ const Borrowing = () => {
         setStatus('Please install MetaMask to continue');
         return;
       }
-
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      });
-      
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       if (accounts.length === 0) {
         throw new Error('No accounts found');
       }
-
-      setIsConnected(true);
-      setAccount(accounts[0]);
       setStatus('Wallet connected successfully');
+      setIsConnected(true);
     } catch (error) {
       if (error.code === 4001) {
         setStatus('Please approve the MetaMask connection');
@@ -52,37 +57,55 @@ const Borrowing = () => {
   };
 
   const applyForLoan = async () => {
-    if (!isConnected) {
+    if (!isConnected || !signer) {
       setStatus("Please connect MetaMask!");
       return;
     }
-
     try {
       setLoading(true);
-      setStatus("Processing transaction...");
+      setStatus("Submitting loan request on-chain...");
+      
+      const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+      // Convert amounts to proper units (assumes ETH for amounts)
+      const parsedLoanAmount = ethers.parseEther(loanAmount);
+      const parsedCollateral = ethers.parseEther(collateralAmount);
+      // Convert duration from days to seconds
+      const durationSeconds = parseInt(duration) * 86400;
+      const interest = parseInt(interestRate);
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const loanRequest = {
+        amount: parsedLoanAmount,
+        interest: interest,
+        duration: durationSeconds,
+        collateralAmount: parsedCollateral,
+        // Placeholder collateral token address
+        collateralToken: "0x0000000000000000000000000000000000000000"
+      };
+
+      const tx = await contract.requestLoan(loanRequest);
+      setStatus("Transaction submitted. Waiting for confirmation...");
+      await tx.wait();
+      setStatus("Loan requested successfully on-chain!");
 
       const newLoan = {
-        id: Date.now(),
+        id: Date.now(), // local id for UI purposes
         amount: loanAmount,
         collateral: collateralAmount,
         duration: duration,
         interestRate: interestRate,
         totalRepayment: calculateTotalRepayment(),
-        status: 'PENDING',
+        status: 'REQUESTED',
         timestamp: new Date().toLocaleString(),
       };
 
       setLoanRequests(prev => [newLoan, ...prev]);
-      setStatus("Loan requested successfully!");
-      
       setLoanAmount('');
       setCollateralAmount('');
       setDuration('30');
       setInterestRate('5');
     } catch (error) {
-      setStatus("Error requesting loan: Transaction failed");
+      console.error(error);
+      setStatus("Error requesting loan: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -91,7 +114,6 @@ const Borrowing = () => {
   return (
     <div className="min-h-screen bg-gray-900 p-6 space-y-6">
       <h1 className="text-3xl font-bold text-white mb-6">Borrowing</h1>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-gray-800 border border-blue-500">
           <CardHeader>
@@ -111,9 +133,8 @@ const Borrowing = () => {
                   step="0.01"
                 />
               </div>
-
               <div>
-                <label className="block text-white mb-2">Collateral Amount (Any Equivalent)</label>
+                <label className="block text-white mb-2">Collateral Amount (ETH)</label>
                 <input
                   type="number"
                   className="w-full p-2 rounded bg-gray-700 text-white"
@@ -124,7 +145,6 @@ const Borrowing = () => {
                   step="0.01"
                 />
               </div>
-
               <div>
                 <label className="block text-white mb-2">Loan Duration (Days)</label>
                 <input
@@ -141,7 +161,6 @@ const Borrowing = () => {
                 />
                 <p className="text-gray-400 text-sm mt-1">Minimum duration: 2 days</p>
               </div>
-
               <div>
                 <label className="block text-white mb-2">Interest Rate (% APR)</label>
                 <input
@@ -162,20 +181,21 @@ const Borrowing = () => {
               <div>
                 <label className="block text-white mb-2">NFT Address</label>
                 <input
-                  type="number"
+                  type="text"
                   className="w-full p-2 rounded bg-gray-700 text-white"
                   disabled={!isConnected}
+                  placeholder="Coming Soon"
                 />
               </div>
               <div>
                 <label className="block text-white mb-2">Token ID</label>
                 <input
-                  type="number"
+                  type="text"
                   className="w-full p-2 rounded bg-gray-700 text-white"
                   disabled={!isConnected}
+                  placeholder="Coming Soon"
                 />
               </div>
-
               {calculateTotalRepayment() && (
                 <div className="p-3 bg-gray-700 rounded">
                   <p className="text-white">
@@ -186,7 +206,6 @@ const Borrowing = () => {
                   </p>
                 </div>
               )}
-
               {isConnected ? (
                 <div className="space-y-4">
                   <p className="text-white">Connected Account: {account}</p>
@@ -207,7 +226,6 @@ const Borrowing = () => {
                   {walletLoading ? "Connecting..." : "Connect MetaMask"}
                 </button>
               )}
-
               {status && (
                 <p className="text-white p-3 rounded bg-gray-700">
                   {status}
@@ -216,10 +234,9 @@ const Borrowing = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card className="bg-gray-800 border border-blue-500">
           <CardHeader>
-            <CardTitle className="text-white">My Loan Requests</CardTitle>
+            <CardTitle className="text-white">My Loan Requests (Local View)</CardTitle>
           </CardHeader>
           <CardContent>
             {loanRequests.length === 0 ? (
@@ -231,22 +248,16 @@ const Borrowing = () => {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <p className="text-gray-400">Amount:</p>
                       <p className="text-white">{loan.amount} ETH</p>
-                      
                       <p className="text-gray-400">Collateral:</p>
                       <p className="text-white">{loan.collateral} ETH</p>
-                      
                       <p className="text-gray-400">Duration:</p>
                       <p className="text-white">{loan.duration} days</p>
-                      
                       <p className="text-gray-400">Interest Rate:</p>
                       <p className="text-white">{loan.interestRate}% APR</p>
-                      
                       <p className="text-gray-400">Total Repayment:</p>
                       <p className="text-white">{loan.totalRepayment} ETH</p>
-                      
                       <p className="text-gray-400">Status:</p>
                       <p className="text-white">{loan.status}</p>
-                      
                       <p className="text-gray-400">Requested:</p>
                       <p className="text-white">{loan.timestamp}</p>
                     </div>

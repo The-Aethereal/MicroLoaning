@@ -7,8 +7,9 @@ import About from './pages/About.jsx';
 import Lending from './pages/Lending.jsx';
 import AuthSign from './pages/AuthSign.jsx';
 import { ethers } from 'ethers';
-import { useState, useEffect } from 'react';
-import { WalletProvider, useWallet } from './wallet.jsx'; 
+import { useEffect } from 'react';
+import { WalletProvider, useWallet } from './wallet.jsx';
+
 const App = () => {
   const { setProvider, setSigner, setAccount } = useWallet(); 
 
@@ -18,8 +19,8 @@ const App = () => {
         const accounts = await window.ethereum.request({
           method: 'eth_requestAccounts',
         });
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
         setProvider(provider);
         setSigner(signer);
         setAccount(accounts[0]);

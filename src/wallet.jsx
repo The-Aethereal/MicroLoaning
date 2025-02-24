@@ -12,24 +12,19 @@ export const WalletProvider = ({ children }) => {
   const [chainId, setChainId] = useState(null);
 
   const connectWallet = async () => {
-   
     try {
       setIsLoading(true);
       setError(null);
-
       const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts'
       });
-
       const ethersProvider = new ethers.BrowserProvider(window.ethereum);
       const ethersSigner = await ethersProvider.getSigner();
       const network = await ethersProvider.getNetwork();
-
       setProvider(ethersProvider);
       setSigner(ethersSigner);
       setAccount(accounts[0]);
       setChainId(network.chainId);
-
     } catch (err) {
       setError(err.message);
       console.error('Error connecting wallet:', err);
@@ -70,9 +65,7 @@ export const WalletProvider = ({ children }) => {
         }
       }
     };
-
     checkConnection();
-
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', (accounts) => {
         if (accounts.length > 0) {
@@ -81,19 +74,16 @@ export const WalletProvider = ({ children }) => {
           disconnectWallet();
         }
       });
-
       window.ethereum.on('chainChanged', async (newChainId) => {
         setChainId(parseInt(newChainId));
         if (account) {
           await connectWallet();
         }
       });
-
       window.ethereum.on('disconnect', () => {
         disconnectWallet();
       });
     }
-
     return () => {
       if (window.ethereum) {
         window.ethereum.removeAllListeners('accountsChanged');
@@ -116,7 +106,10 @@ export const WalletProvider = ({ children }) => {
         isMetaMaskInstalled: typeof window.ethereum !== 'undefined',
         connectWallet,
         disconnectWallet,
-        switchNetwork
+        switchNetwork,
+        setProvider,
+        setSigner,
+        setAccount,
       }}
     >
       {children}
