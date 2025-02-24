@@ -16,10 +16,6 @@ MicroLoan is a cutting-edge decentralized micro-loaning platform built on Ethere
   - [Running the Project](#running-the-project)
 - [Smart Contract Deployment](#smart-contract-deployment)
 - [Usage](#usage)
-- [Future Improvements](#future-improvements)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
 
 ---
 
@@ -90,9 +86,9 @@ MicroLoan transforms the microfinance space by enabling:
    ```
 
 Install Dependencies:
-
+```bash
 npm install
-
+```
 Configure Environment Variables:
 
 Create a .env file in the project root and add your deployed contract address:
