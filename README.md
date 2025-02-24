@@ -89,3 +89,42 @@ MicroLoan transforms the microfinance space by enabling:
    cd microloan
    ```
 
+Install Dependencies:
+
+npm install
+
+Configure Environment Variables:
+
+Create a .env file in the project root and add your deployed contract address:
+
+    VITE_MICRO_LOAN_ADDRESS=0xYourDeployedContractAddress
+
+Running the Project
+
+Start the development server with:
+
+npm run dev
+
+Then open your browser at http://localhost:5173 (or the URL provided by Vite).
+
+Smart Contract Deployment
+
+    Compile the Contract: Use your preferred Solidity development tool (e.g., Hardhat or Remix) to compile p2p.sol.
+
+    Deploy the Contract: Deploy the contract to your desired Ethereum network (e.g., a testnet like Rinkeby or Polygon).
+
+    Update Environment Variables: Replace the placeholder in your .env file with the deployed contract address.
+
+Usage
+
+    Borrowing:
+    Connect your wallet and submit a loan request on the Borrowing page. The transaction will call the requestLoan function on-chain.
+
+    Lending:
+    Using a different account (lender), navigate to the Lending Dashboard. Here, open loans are fetched from the blockchain. Approve and fund loans by calling the fundLoan function.
+
+    Dashboard:
+    Monitor your active loans and view the status of each transaction.
+
+    About & Auth:
+    Learn more about the platform’s decentralized architecture and test wallet connectivity.
