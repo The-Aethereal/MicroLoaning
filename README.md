@@ -102,9 +102,10 @@ Create a .env file in the project root and add your deployed contract address:
 Running the Project
 
 Start the development server with:
+```bash
 
 npm run dev
-
+```
 Then open your browser at http://localhost:5173 (or the URL provided by Vite).
 
 Smart Contract Deployment
